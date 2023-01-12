@@ -4,6 +4,10 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    twilio.auth.token: '%env(resolve:TWILIO_ACCOUNT_SID)%'
+    twilio.account.sid: '%env(resolve:TWILIO_AUTH_TOKEN)%'
+    twilio.number: '%env(resolve:TWILIO_PHONE_NUMBER)%'
+    sms.recipient: '%env(resolve:SMS_RECIPIENT_NUMBER)%'
 
 services:
     # default configuration for services in *this* file
@@ -22,3 +26,16 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    twilio.client:
+        class: Twilio\Rest\Client
+        autowire: false
+        arguments:
+            - '%env(resolve:TWILIO_ACCOUNT_SID)%'
+            - '%env(resolve:TWILIO_AUTH_TOKEN)%'
+
+    App\EventSubscriber\UsageRecordsRetrievedSMSSubscriber:
+        arguments:
+            $smsSender: '%env(resolve:TWILIO_PHONE_NUMBER)%'
+            $smsRecipient: '%env(resolve:SMS_RECIPIENT_NUMBER)%'
+
+    Twilio\Rest\Client: '@twilio.client'
